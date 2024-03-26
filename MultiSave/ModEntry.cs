@@ -2,11 +2,13 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using static StardewValley.Menus.LoadGameMenu;
+using static StardewValley.Menus.LoadGameMenu.SaveFileSlot;
 
 namespace MultiSave
 {
@@ -48,7 +50,38 @@ namespace MultiSave
             Helper.Events.Input.ButtonPressed += Input_ButtonPressed;
 
             var harmony = new Harmony(ModManifest.UniqueID);
-            harmony.PatchAll();
+            harmony.Patch(
+                original: AccessTools.Constructor(typeof(LoadGameMenu), searchForStatic: true),
+                postfix: new HarmonyMethod(typeof(LoadGameMenu_Patch).GetMethod(nameof(LoadGameMenu_Patch.Postfix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(SaveFileSlot), nameof(SaveFileSlot.Draw)),
+                postfix: new HarmonyMethod(typeof(SaveFileSlot_Draw_Patch).GetMethod(nameof(SaveFileSlot_Draw_Patch.Postfix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(TitleMenu), nameof(TitleMenu.backButtonPressed)),
+                prefix: new HarmonyMethod(typeof(TitleMenu_backButtonPressed_Patch).GetMethod(nameof(TitleMenu_backButtonPressed_Patch.Prefix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(LoadGameMenu), "update"),
+                postfix: new HarmonyMethod(typeof(LoadGameMenu_update_Patch).GetMethod(nameof(LoadGameMenu_update_Patch.Postfix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(LoadGameMenu), "deleteFile"),
+                prefix: new HarmonyMethod(typeof(LoadGameMenu_deleteFile_Patch).GetMethod(nameof(LoadGameMenu_deleteFile_Patch.Prefix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(LoadGameMenu), nameof(LoadGameMenu.receiveLeftClick)),
+                prefix: new HarmonyMethod(typeof(LoadGameMenu_receiveLeftClick_Patch).GetMethod(nameof(LoadGameMenu_receiveLeftClick_Patch.Prefix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(LoadGameMenu), nameof(LoadGameMenu.performHoverAction)),
+                prefix: new HarmonyMethod(typeof(LoadGameMenu_performHoverAction_Patch).GetMethod(nameof(LoadGameMenu_performHoverAction_Patch.Prefix)))
+                );
+            harmony.Patch(
+                original: AccessTools.Method(typeof(SaveFileSlot), nameof(SaveFileSlot.Activate)),
+                prefix: new HarmonyMethod(typeof(SaveFileSlot_Activate_Patch).GetMethod(nameof(SaveFileSlot_Activate_Patch.Prefix)))
+                );
 
         }
 
